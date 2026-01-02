@@ -1,0 +1,21 @@
+{
+  "name": "cinnamo-go",
+  "version": "1.0.0",
+  "description": "A cute birthday journey game for Trisha",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "npm run dev",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "phaser": "^3.70.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "gh-pages": "^6.1.0"
+  }
+}
