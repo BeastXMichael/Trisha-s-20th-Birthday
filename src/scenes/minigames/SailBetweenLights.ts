@@ -3,18 +3,21 @@ import { BaseMinigame } from './BaseMinigame';
 import { COLORS, GAME_WIDTH, GAME_HEIGHT } from '../../config';
 import { TUNING } from '../../constants/tuning';
 
-interface Gate {
-  container: Phaser.GameObjects.Container;
-  passed: boolean;
-  gateX: number;
+interface Target {
+  circle: Phaser.GameObjects.Arc;
+  rowIndex: number;
+  hit: boolean;
 }
 
 export class SailBetweenLights extends BaseMinigame {
   private boat!: Phaser.GameObjects.Container;
-  private gates: Gate[] = [];
+  private targets: Target[] = [];
   private spawnTimer?: Phaser.Time.TimerEvent;
   private gatesPassed: number = 0;
-  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private laneYs: number[] = [];
+  private currentLaneIndex: number = 1;
+  private startTime: number = 0;
+  private baseTargetSpeed: number = 0;
 
   constructor() {
     super({ key: 'SailBetweenLights' });
@@ -38,10 +41,11 @@ export class SailBetweenLights extends BaseMinigame {
     this.createBoat();
 
     // Setup controls
-    this.cursors = this.input.keyboard?.createCursorKeys();
+    this.input.keyboard?.on('keydown-UP', () => this.moveLane(-1));
+    this.input.keyboard?.on('keydown-DOWN', () => this.moveLane(1));
 
     // Instructions
-    const instructions = this.add.text(GAME_WIDTH / 2, 100, 'Use Arrow Keys to steer through the gates!', {
+    const instructions = this.add.text(GAME_WIDTH / 2, 100, 'Use ↑/↓ to jump lanes and hit the glowing circle!', {
       fontSize: '22px',
       color: '#FFFFFF',
       fontFamily: 'Arial, sans-serif',
@@ -61,6 +65,9 @@ export class SailBetweenLights extends BaseMinigame {
         this.showLose();
       }
     });
+
+    this.startTime = this.time.now;
+    this.baseTargetSpeed = config.boatSpeed;
   }
 
   private createWaterBackground(): void {
@@ -119,11 +126,23 @@ export class SailBetweenLights extends BaseMinigame {
         });
       }
     }
+
+    this.laneYs = [
+      GAME_HEIGHT / 2 - 120,
+      GAME_HEIGHT / 2 - 30,
+      GAME_HEIGHT / 2 + 60,
+      GAME_HEIGHT / 2 + 150,
+    ];
+
+    this.laneYs.forEach((laneY) => {
+      const line = this.add.rectangle(GAME_WIDTH / 2, laneY, GAME_WIDTH, 2, COLORS.white, 0.15);
+      line.setDepth(1);
+    });
   }
 
   private createBoat(): void {
     const x = 200;
-    const y = GAME_HEIGHT / 2 + 100;
+    const y = this.laneYs[this.currentLaneIndex];
 
     this.boat = this.add.container(x, y);
 
@@ -167,67 +186,33 @@ export class SailBetweenLights extends BaseMinigame {
 
     this.spawnTimer = this.time.addEvent({
       delay: config.gateSpawnInterval,
-      callback: () => this.spawnGate(),
+      callback: () => this.spawnTarget(),
       loop: true,
     });
 
     // Spawn initial gate
-    this.time.delayedCall(500, () => this.spawnGate());
+    this.time.delayedCall(500, () => this.spawnTarget());
   }
 
-  private spawnGate(): void {
+  private spawnTarget(): void {
     if (this.isGameOver) return;
 
-    const config = TUNING.sailing;
+    const rowIndex = Phaser.Math.Between(0, this.laneYs.length - 1);
+    const circle = this.add.circle(GAME_WIDTH + 60, this.laneYs[rowIndex], 22, COLORS.gold, 0.9);
+    circle.setStrokeStyle(3, COLORS.white);
 
-    // Random Y position for gate
-    const gateY = GAME_HEIGHT / 2 + Phaser.Math.Between(-50, 150);
-    const gateWidth = config.gateWidth;
-
-    const container = this.add.container(GAME_WIDTH + 100, gateY);
-
-    // Left pole with light
-    const leftPole = this.add.rectangle(-gateWidth / 2, 0, 10, 100, 0x8B4513);
-    const leftLight = this.add.circle(-gateWidth / 2, -40, 15, COLORS.gold);
     this.tweens.add({
-      targets: leftLight,
-      alpha: 0.5,
+      targets: circle,
+      alpha: 0.4,
       duration: 500,
       yoyo: true,
       repeat: -1,
     });
 
-    // Right pole with light
-    const rightPole = this.add.rectangle(gateWidth / 2, 0, 10, 100, 0x8B4513);
-    const rightLight = this.add.circle(gateWidth / 2, -40, 15, COLORS.gold);
-    this.tweens.add({
-      targets: rightLight,
-      alpha: 0.5,
-      duration: 500,
-      yoyo: true,
-      repeat: -1,
-      delay: 250,
-    });
-
-    // Add a visible gate ring / pass area indicator between lights
-    const ring = this.add.circle(0, -40, gateWidth / 2 + 20, 0xFFFFFF, 0);
-    ring.setStrokeStyle(4, 0x66ccff, 0.6);
-    this.tweens.add({
-      targets: ring,
-      alpha: 0.15,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-    });
-
-    container.add([leftPole, rightPole, leftLight, rightLight, ring]);
-
-    container.add([leftPole, rightPole, leftLight, rightLight]);
-
-    this.gates.push({
-      container,
-      passed: false,
-      gateX: gateWidth / 2,
+    this.targets.push({
+      circle,
+      rowIndex,
+      hit: false,
     });
   }
 
@@ -236,44 +221,22 @@ export class SailBetweenLights extends BaseMinigame {
 
     const config = TUNING.sailing;
     const delta = this.game.loop.delta / 1000;
+    const elapsedSeconds = (this.time.now - this.startTime) / 1000;
+    const speedMultiplier = 1 + 0.5 * Math.min(elapsedSeconds / 30, 1);
+    const targetSpeed = this.baseTargetSpeed * speedMultiplier;
 
-    // Boat steering
-    if (this.cursors?.up?.isDown) {
-      this.boat.y -= config.steerSpeed * delta;
-    }
-    if (this.cursors?.down?.isDown) {
-      this.boat.y += config.steerSpeed * delta;
-    }
-    if (this.cursors?.left?.isDown) {
-      this.boat.x -= config.steerSpeed * delta * 0.5;
-    }
-    if (this.cursors?.right?.isDown) {
-      this.boat.x += config.steerSpeed * delta * 0.5;
-    }
+    for (let i = this.targets.length - 1; i >= 0; i--) {
+      const target = this.targets[i];
+      target.circle.x -= targetSpeed * delta;
 
-    // Clamp boat position
-    this.boat.y = Phaser.Math.Clamp(this.boat.y, 150, GAME_HEIGHT - 50);
-    this.boat.x = Phaser.Math.Clamp(this.boat.x, 100, 400);
-
-    // Move gates
-    for (let i = this.gates.length - 1; i >= 0; i--) {
-      const gate = this.gates[i];
-      gate.container.x -= config.boatSpeed * delta;
-
-      // Check if boat passed through gate
-      if (!gate.passed) {
-        const boatY = this.boat.y;
-        const gateY = gate.container.y;
-        const dx = Math.abs(this.boat.x - gate.container.x);
-
-        // if boat close enough to gate X and vertically aligned, count as pass
-        if (dx < 80 && Math.abs(boatY - gateY) < 80) {
-          gate.passed = true;
+      if (!target.hit) {
+        const dx = Math.abs(target.circle.x - this.boat.x);
+        if (dx < 30 && target.rowIndex === this.currentLaneIndex) {
+          target.hit = true;
           this.gatesPassed++;
           this.hud.setScore(this.gatesPassed);
-          this.showGateFeedback(gate.container.x, gate.container.y, true);
+          this.showGateFeedback(target.circle.x, target.circle.y, true);
 
-          // Check for win
           if (this.gatesPassed >= config.targetGates) {
             this.spawnTimer?.destroy();
             this.showWin();
@@ -281,16 +244,14 @@ export class SailBetweenLights extends BaseMinigame {
         }
       }
 
-      // Check for collision/miss
-      if (!gate.passed && gate.container.x < this.boat.x - 60) {
-        gate.passed = true;
-        this.showGateFeedback(gate.container.x, gate.container.y, false);
+      if (!target.hit && target.circle.x < this.boat.x - 40) {
+        target.hit = true;
+        this.showGateFeedback(target.circle.x, target.circle.y, false);
       }
 
-      // Remove if off screen
-      if (gate.container.x < -150) {
-        gate.container.destroy();
-        this.gates.splice(i, 1);
+      if (target.circle.x < -60) {
+        target.circle.destroy();
+        this.targets.splice(i, 1);
       }
     }
   }
@@ -313,6 +274,18 @@ export class SailBetweenLights extends BaseMinigame {
       alpha: 0,
       duration: 500,
       onComplete: () => feedback.destroy(),
+    });
+  }
+
+  private moveLane(direction: number): void {
+    const nextIndex = Phaser.Math.Clamp(this.currentLaneIndex + direction, 0, this.laneYs.length - 1);
+    if (nextIndex === this.currentLaneIndex) return;
+    this.currentLaneIndex = nextIndex;
+    this.tweens.add({
+      targets: this.boat,
+      y: this.laneYs[this.currentLaneIndex],
+      duration: 150,
+      ease: 'Sine.easeOut',
     });
   }
 

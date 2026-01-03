@@ -174,12 +174,12 @@ export class RomanticDinner extends BaseMinigame {
     const y = 50;
 
     // Label
-    const label = this.add.text(x - barWidth / 2 - 60, y, '❤️ Love:', {
+    const label = this.add.text(x - barWidth / 2 - 12, y, '❤️ Love:', {
       fontSize: '20px',
       color: '#FFFFFF',
       fontFamily: 'Arial, sans-serif',
     });
-    label.setOrigin(0, 0.5);
+    label.setOrigin(1, 0.5);
 
     // Background
     this.loveBarBg = this.add.rectangle(x, y, barWidth, barHeight, 0x555555);
@@ -226,18 +226,18 @@ export class RomanticDinner extends BaseMinigame {
     this.answerButtons = [];
 
     // Prompt container centered
-    this.promptContainer = this.add.container(GAME_WIDTH / 2, 140);
+    this.promptContainer = this.add.container(GAME_WIDTH / 2, 150);
 
     // Woman avatar and bubble (left)
-    const avatarLeft = this.add.text(-260, -20, '👩', { fontSize: '48px' });
+    const bubbleWidth = 540;
+    const bubbleHeight = 90;
+    const avatarLeft = this.add.text(-(bubbleWidth / 2 + 70), -10, '👩', { fontSize: '48px' });
     avatarLeft.setOrigin(0.5);
 
-    const bubbleWidth = 520;
-    const bubbleHeight = 80;
-    const bubble = this.add.rectangle(-120, 0, bubbleWidth, bubbleHeight, COLORS.white, 0.95);
+    const bubble = this.add.rectangle(0, 0, bubbleWidth, bubbleHeight, COLORS.white, 0.95);
     bubble.setStrokeStyle(3, COLORS.pink);
 
-    const questionText = this.add.text(-120, 0, prompt.question, {
+    const questionText = this.add.text(-bubbleWidth / 2 + 24, 0, prompt.question, {
       fontSize: '22px',
       color: '#333333',
       fontFamily: 'Arial, sans-serif',
@@ -255,12 +255,12 @@ export class RomanticDinner extends BaseMinigame {
     // Create answer buttons (man's reply options on right)
     shuffledAnswers.forEach((answer, index) => {
       const y = 300 + index * 80;
-      const btn = this.createAnswerButton(GAME_WIDTH / 2 + 40, y, answer.text, answer.points);
+      const btn = this.createAnswerButton(GAME_WIDTH / 2, y, answer.text, answer.points);
       this.answerButtons.push(btn);
     });
 
     // Progress indicator
-    const progressText = this.add.text(GAME_WIDTH / 2, 130, `${this.currentPromptIndex + 1} / ${PROMPTS.length}`, {
+    const progressText = this.add.text(0, bubbleHeight / 2 + 24, `${this.currentPromptIndex + 1} / ${PROMPTS.length}`, {
       fontSize: '18px',
       color: '#AAAAAA',
       fontFamily: 'Arial, sans-serif',

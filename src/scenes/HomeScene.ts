@@ -31,6 +31,19 @@ export class HomeScene extends Phaser.Scene {
     this.load.audio('loseSound', new URL('../Assets/Lose sound effects.mp3', import.meta.url).href);
     this.load.audio('gameStartSound', new URL('../Assets/Game Start Sound Effect- Arcade games.mp3', import.meta.url).href);
     this.load.audio('finalVictoryMusic', new URL('../Assets/Mario Victory Theme [yjTZLVFi4aA].mp3', import.meta.url).href);
+    this.load.audio('nodeSelectSound', new URL('../Assets/video-game-select-337214.mp3', import.meta.url).href);
+    this.load.audio(
+      'enterGameSound',
+      new URL('../Assets/game-start-317318 (online-video-cutter.com).mp3', import.meta.url).href
+    );
+    this.load.audio(
+      'tokenSlideSound',
+      new URL('../Assets/game-start-317318 (online-video-cutter.com)-3.mp3', import.meta.url).href
+    );
+    this.load.image('chestImage', new URL('../Assets/Chest.png', import.meta.url).href);
+    this.load.image('messageFrame', new URL('../Assets/Message Frame.png', import.meta.url).href);
+    this.load.text('messageText', new URL('../Assets/message.txt', import.meta.url).href);
+    this.load.audio('messageMusic', new URL('../Assets/Last Page, First Kiss.mp3', import.meta.url).href);
 
     // Token logos
     this.load.image('tokenCar', new URL('../Assets/Logos/Car Logo.png', import.meta.url).href);

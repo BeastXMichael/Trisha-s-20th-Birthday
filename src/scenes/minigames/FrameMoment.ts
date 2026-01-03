@@ -10,6 +10,8 @@ export class FrameMoment extends BaseMinigame {
   private progress: number = 0;
   private frameDirection: number = 1;
   private frameSpeed: number = 0;
+  private startTime: number = 0;
+  private subjectJumpTween?: Phaser.Tweens.Tween;
 
   constructor() {
     super({ key: 'FrameMoment' });
@@ -17,7 +19,7 @@ export class FrameMoment extends BaseMinigame {
 
   create(): void {
     const config = TUNING.photo;
-    this.frameSpeed = config.frameSpeed;
+    this.frameSpeed = config.frameSpeed * 3;
 
     // Background - sunset scene
     this.createSunsetBackground();
@@ -58,6 +60,8 @@ export class FrameMoment extends BaseMinigame {
         this.showLose();
       }
     });
+
+    this.startTime = this.time.now;
   }
 
   private createSunsetBackground(): void {
@@ -130,6 +134,8 @@ export class FrameMoment extends BaseMinigame {
 
       this.subjects.push(container);
     });
+
+    this.startSubjectJump(this.subjects[this.currentSubjectIndex]);
   }
 
   private createCameraFrame(): void {
@@ -269,17 +275,36 @@ export class FrameMoment extends BaseMinigame {
     subject.x = GAME_WIDTH / 3 + Math.random() * (GAME_WIDTH / 3);
     subject.y = GAME_HEIGHT / 2 - 50 + Math.random() * 100;
     subject.setVisible(true);
+    this.startSubjectJump(subject);
 
     // Reset frame to a side
     this.cameraFrame.x = Math.random() > 0.5 ? 100 : GAME_WIDTH - 100;
     this.frameDirection = this.cameraFrame.x < GAME_WIDTH / 2 ? 1 : -1;
   }
 
+  private startSubjectJump(subject: Phaser.GameObjects.Container): void {
+    if (this.subjectJumpTween) {
+      this.subjectJumpTween.stop();
+    }
+    this.subjectJumpTween = this.tweens.add({
+      targets: subject,
+      y: subject.y - 18,
+      duration: 450,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
   update(): void {
     if (this.isGameOver) return;
 
     // Move camera frame back and forth
-    this.cameraFrame.x += this.frameSpeed * this.frameDirection * (this.game.loop.delta / 1000);
+    const elapsedSeconds = (this.time.now - this.startTime) / 1000;
+    const speedProgress = Math.min(elapsedSeconds / 30, 1);
+    const speedMultiplier = 1.2 + 0.8 * speedProgress;
+    const frameSpeed = this.frameSpeed * speedMultiplier;
+    this.cameraFrame.x += frameSpeed * this.frameDirection * (this.game.loop.delta / 1000);
 
     // Bounce off edges
     if (this.cameraFrame.x > GAME_WIDTH - 100) {

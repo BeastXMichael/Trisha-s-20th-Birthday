@@ -15,6 +15,7 @@ export class FoodConveyor extends BaseMinigame {
   private foods: FoodItem[] = [];
   private spawnTimer?: Phaser.Time.TimerEvent;
   private score: number = 0;
+  private startTime: number = 0;
 
   constructor() {
     super({ key: 'FoodConveyor' });
@@ -58,6 +59,8 @@ export class FoodConveyor extends BaseMinigame {
         this.showLose();
       }
     });
+
+    this.startTime = this.time.now;
   }
 
   private createRestaurantBackground(): void {
@@ -228,7 +231,9 @@ export class FoodConveyor extends BaseMinigame {
     if (this.isGameOver) return;
 
     const config = TUNING.food;
-    const speed = config.beltSpeed * (this.game.loop.delta / 1000);
+    const elapsedSeconds = (this.time.now - this.startTime) / 1000;
+    const speedMultiplier = 1 + 0.5 * Math.min(elapsedSeconds / 30, 1);
+    const speed = config.beltSpeed * speedMultiplier * (this.game.loop.delta / 1000);
 
     // Move foods along conveyor
     for (let i = this.foods.length - 1; i >= 0; i--) {

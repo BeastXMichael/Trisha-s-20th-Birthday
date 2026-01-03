@@ -27,6 +27,8 @@ export class DialogueSystem {
 
   private onCompleteCallback?: () => void;
   private enterKey?: Phaser.Input.Keyboard.Key;
+  private spaceKey?: Phaser.Input.Keyboard.Key;
+  private ignoreInputUntil: number = 0;
 
   // Dialogue sound effect
   private dialogueSound?: Phaser.Sound.BaseSound;
@@ -166,10 +168,13 @@ export class DialogueSystem {
     this.enterKey = this.scene.input.keyboard?.addKey(
       Phaser.Input.Keyboard.KeyCodes.ENTER
     );
+    this.spaceKey = this.scene.input.keyboard?.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    );
 
     // Also allow click/tap to advance
     this.scene.input.on('pointerdown', () => {
-      if (this.isActive) {
+      if (this.isActive && this.canAdvance()) {
         this.advanceDialogue();
       }
     });
@@ -191,6 +196,7 @@ export class DialogueSystem {
       this.currentCharIndex = 0;
       this.isActive = true;
       this.onCompleteCallback = resolve;
+      this.ignoreInputUntil = this.scene.time.now + 200;
 
       // Update name tag
       this.nameText.setText(characterName);
@@ -297,6 +303,8 @@ export class DialogueSystem {
     if (this.dialogueSound) {
       this.dialogueSound.stop();
     }
+    this.scene.sound.stopByKey('dialogueSound');
+    this.scene.sound.stopByKey('dialogueSound');
 
     // Exit animation for character
     this.scene.tweens.add({
@@ -338,9 +346,16 @@ export class DialogueSystem {
     if (!this.isActive) return;
 
     // Check for ENTER key press
-    if (Phaser.Input.Keyboard.JustDown(this.enterKey!)) {
+    if (
+      (Phaser.Input.Keyboard.JustDown(this.enterKey!) || Phaser.Input.Keyboard.JustDown(this.spaceKey!)) &&
+      this.canAdvance()
+    ) {
       this.advanceDialogue();
     }
+  }
+
+  private canAdvance(): boolean {
+    return this.scene.time.now >= this.ignoreInputUntil;
   }
 
   /**
@@ -354,6 +369,7 @@ export class DialogueSystem {
       this.dialogueSound.stop();
       this.dialogueSound.destroy();
     }
+    this.scene.sound.stopByKey('dialogueSound');
     this.container.destroy();
   }
 }

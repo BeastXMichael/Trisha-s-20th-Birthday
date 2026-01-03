@@ -10,6 +10,7 @@ import { MatchaWhisk } from './scenes/minigames/MatchaWhisk';
 import { SailBetweenLights } from './scenes/minigames/SailBetweenLights';
 import { FrameMoment } from './scenes/minigames/FrameMoment';
 import { RomanticDinner } from './scenes/minigames/RomanticDinner';
+import { MessageScene } from './scenes/MessageScene';
 
 export const GAME_WIDTH = 1280;
 export const GAME_HEIGHT = 720;
@@ -36,6 +37,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     FrameMoment,
     RomanticDinner,
     ChestScene,
+    MessageScene,
   ],
 };
 

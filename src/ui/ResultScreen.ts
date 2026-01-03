@@ -104,13 +104,6 @@ export class ResultScreen {
     this.createSparklesAroundText(tokenText);
 
 
-    // Start a short Judy dialogue automatically for this win
-    const dsAuto = new DialogueSystem(this.scene as Phaser.Scene);
-    const autoKey = `afterMinigame${this.levelIndex + 1}`;
-    // @ts-ignore
-    const autoLines = (DIALOGUES as any)[autoKey] || [];
-    dsAuto.startDialogue(autoLines, 'Judy').then(() => dsAuto.destroy());
-
     // Check if this was the last level
     const isLastLevel = this.levelIndex === 5;
 
@@ -118,8 +111,23 @@ export class ResultScreen {
     const buttonText = isLastLevel ? 'See Your Surprise!' : 'Continue';
     const button = this.createButton(0, 160, buttonText, COLORS.mint, () => {
       onNext();
-    });
+    }, false, false);
     this.container.add(button);
+
+    // Start a short Judy dialogue automatically for this win
+    const dsAuto = new DialogueSystem(this.scene as Phaser.Scene);
+    const autoKey = `afterMinigame${this.levelIndex + 1}`;
+    // @ts-ignore
+    const autoLines = (DIALOGUES as any)[autoKey] || [];
+    if (autoLines.length > 0) {
+      dsAuto.startDialogue(autoLines, 'Judy').then(() => {
+        dsAuto.destroy();
+        this.enableButton(button);
+      });
+    } else {
+      dsAuto.destroy();
+      this.enableButton(button);
+    }
   }
 
   private createLoseContent(onRetry: () => void): void {
@@ -197,7 +205,8 @@ export class ResultScreen {
     text: string,
     color: number,
     callback: () => void,
-    small: boolean = false
+    small: boolean = false,
+    enabled: boolean = true
   ): Phaser.GameObjects.Container {
     const container = this.scene.add.container(x, y);
 
@@ -207,7 +216,6 @@ export class ResultScreen {
 
     const bg = this.scene.add.rectangle(0, 0, width, height, color);
     bg.setStrokeStyle(3, COLORS.darkBlue);
-    bg.setInteractive({ useHandCursor: true });
 
     const buttonText = this.scene.add.text(0, 0, text, {
       fontSize,
@@ -219,6 +227,27 @@ export class ResultScreen {
 
     container.add([bg, buttonText]);
 
+    container.setData('bg', bg);
+    container.setData('callback', callback);
+    if (enabled) {
+      this.enableButton(container);
+    } else {
+      container.setAlpha(0.6);
+    }
+
+    return container;
+  }
+
+  private enableButton(container: Phaser.GameObjects.Container): void {
+    const bg = container.getData('bg') as Phaser.GameObjects.Rectangle | undefined;
+    const callback = container.getData('callback') as (() => void) | undefined;
+    if (!bg || !callback || container.getData('enabled')) {
+      return;
+    }
+
+    container.setAlpha(1);
+    container.setData('enabled', true);
+    bg.setInteractive({ useHandCursor: true });
     bg.on('pointerover', () => {
       bg.setAlpha(0.8);
     });
@@ -226,8 +255,6 @@ export class ResultScreen {
       bg.setAlpha(1);
     });
     bg.on('pointerdown', callback);
-
-    return container;
   }
 
   destroy(): void {

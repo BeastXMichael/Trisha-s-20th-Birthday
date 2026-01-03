@@ -31,6 +31,8 @@ export class MapScene extends Phaser.Scene {
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyA?: Phaser.Input.Keyboard.Key;
   private keyD?: Phaser.Input.Keyboard.Key;
+  private keyEnter?: Phaser.Input.Keyboard.Key;
+  private keySpace?: Phaser.Input.Keyboard.Key;
 
   // Queue for multi-node walking
   private walkQueue: string[] = [];
@@ -110,6 +112,8 @@ export class MapScene extends Phaser.Scene {
     this.dialogueSystem = new DialogueSystem(this);
     this.keyA = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.keyD = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.keyEnter = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    this.keySpace = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     // Add guidance text
     this.addGuidanceText();
@@ -117,9 +121,17 @@ export class MapScene extends Phaser.Scene {
     // Ensure home music is stopped when entering the map
     this.sound.stopByKey('homeMusic');
 
-    // Start map background music
-    this.mapMusic = this.sound.add('mapMusic', { loop: true, volume: 0.6 });
-    this.mapMusic.play();
+    // Start map background music (avoid stacking)
+    const existingMapMusic = this.sound.get('mapMusic');
+    if (existingMapMusic && existingMapMusic.isPlaying) {
+      this.mapMusic = existingMapMusic;
+    } else {
+      this.sound.stopByKey('messageMusic');
+      this.sound.stopByKey('finalVictoryMusic');
+      this.sound.stopByKey('mapMusic');
+      this.mapMusic = this.sound.add('mapMusic', { loop: true, volume: 0.6 });
+      this.mapMusic.play();
+    }
 
     // Show intro dialogue once when entering the map
     if (!MapScene.introShown) {
@@ -162,6 +174,10 @@ export class MapScene extends Phaser.Scene {
     // Update dialogue system to handle ENTER advances
     if (this.dialogueSystem) {
       this.dialogueSystem.update();
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keyEnter!) || Phaser.Input.Keyboard.JustDown(this.keySpace!)) {
+      this.handleNodeAction(this.currentNodeId);
     }
   }
 
@@ -260,6 +276,8 @@ export class MapScene extends Phaser.Scene {
 
   private onNodeClicked(targetNodeId: string): void {
     if (this.isWalking) return;
+
+    this.sound.play('nodeSelectSound');
 
     if (targetNodeId === this.currentNodeId) {
       this.handleNodeAction(targetNodeId);
@@ -484,6 +502,7 @@ export class MapScene extends Phaser.Scene {
 
     // Level nodes (0-5) - go to ReadyScene (which will continue the music)
     const levelIndex = node.levelIndex;
+    this.sound.play('enterGameSound');
     this.scene.start('ReadyScene', { levelIndex });
   }
 

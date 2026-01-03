@@ -17,9 +17,15 @@ export class ReadyScene extends Phaser.Scene {
   create(): void {
     const level = LEVELS[this.levelIndex];
 
-    // Continue playing map music
-    this.mapMusic = this.sound.add('mapMusic', { loop: true, volume: 0.6 });
-    this.mapMusic.play();
+    // Continue playing map music (avoid stacking)
+    const existingMapMusic = this.sound.get('mapMusic');
+    if (existingMapMusic && existingMapMusic.isPlaying) {
+      this.mapMusic = existingMapMusic;
+    } else {
+      this.sound.stopByKey('mapMusic');
+      this.mapMusic = this.sound.add('mapMusic', { loop: true, volume: 0.6 });
+      this.mapMusic.play();
+    }
 
     // Background
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.skyBlue);

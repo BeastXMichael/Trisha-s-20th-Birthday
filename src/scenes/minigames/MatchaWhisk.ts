@@ -10,6 +10,10 @@ export class MatchaWhisk extends BaseMinigame {
   private foamLevel: number = 0;
   private cursorAngle: number = 0;
   private sweetSpotAngle: number = 0;
+  private startTime: number = 0;
+  private baseSweetSpotArc: number = 0;
+  private baseRotationSpeed: number = 0;
+  private currentSweetSpotArc: number = 0;
 
   constructor() {
     super({ key: 'MatchaWhisk' });
@@ -53,6 +57,11 @@ export class MatchaWhisk extends BaseMinigame {
         this.showLose();
       }
     });
+
+    this.startTime = this.time.now;
+    this.baseSweetSpotArc = config.sweetSpotArc;
+    this.baseRotationSpeed = config.rotationSpeed;
+    this.currentSweetSpotArc = config.sweetSpotArc;
   }
 
   private createCafeBackground(): void {
@@ -88,7 +97,7 @@ export class MatchaWhisk extends BaseMinigame {
 
     // Sweet spot arc (the target zone)
     const config = TUNING.matcha;
-    const sweetSpotArcDegrees = config.sweetSpotArc;
+    const sweetSpotArcDegrees = this.currentSweetSpotArc || config.sweetSpotArc;
     // Use standard polar coordinates (0 rad = right) so cursor math and arc angles align
     this.sweetSpotAngle = Math.random() * Math.PI * 2;
 
@@ -140,7 +149,7 @@ export class MatchaWhisk extends BaseMinigame {
     if (cursorAngleFromPos < 0) cursorAngleFromPos += Math.PI * 2;
 
     const sweetSpotStart = this.sweetSpotAngle % (Math.PI * 2);
-    const sweetSpotEnd = (sweetSpotStart + Phaser.Math.DegToRad(config.sweetSpotArc)) % (Math.PI * 2);
+    const sweetSpotEnd = (sweetSpotStart + Phaser.Math.DegToRad(this.currentSweetSpotArc)) % (Math.PI * 2);
 
     let inSweetSpot = false;
     if (sweetSpotEnd > sweetSpotStart) {
@@ -173,10 +182,9 @@ export class MatchaWhisk extends BaseMinigame {
   }
 
   private updateSweetSpot(): void {
-    const config = TUNING.matcha;
     const startDeg = Phaser.Math.RadToDeg(this.sweetSpotAngle);
     this.sweetSpot.setStartAngle(startDeg);
-    this.sweetSpot.setEndAngle(startDeg + config.sweetSpotArc);
+    this.sweetSpot.setEndAngle(startDeg + this.currentSweetSpotArc);
   }
 
   private showWhiskFeedback(success: boolean): void {
@@ -225,9 +233,15 @@ export class MatchaWhisk extends BaseMinigame {
   update(): void {
     if (this.isGameOver) return;
 
-    const config = TUNING.matcha;
+    const elapsedSeconds = (this.time.now - this.startTime) / 1000;
+    const arcProgress = Math.min(elapsedSeconds / 15, 1);
+    this.currentSweetSpotArc = this.baseSweetSpotArc * (1 - 0.5 * arcProgress);
+    this.updateSweetSpot();
+
+    const speedProgress = Math.min(elapsedSeconds / 20, 1);
+    const rotationSpeed = this.baseRotationSpeed * (1 + speedProgress);
     // Rotate cursor (standard polar coordinates)
-    this.cursorAngle += config.rotationSpeed * (this.game.loop.delta / 1000);
+    this.cursorAngle += rotationSpeed * (this.game.loop.delta / 1000);
 
     // Update cursor position using cos/sin so 0 rad = right
     const radius = 180; // bowlRadius + 30

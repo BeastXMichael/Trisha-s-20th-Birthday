@@ -16,7 +16,7 @@ export const TUNING = {
     gameDuration: 30, // seconds
     targetScore: 15,
     startingHealth: 3,
-    beltSpeed: 150, // pixels per second
+    beltSpeed: 2160, // pixels per second
     spawnInterval: 800, // ms
     mexicanFoodRatio: 0.6, // 60% Mexican foods
     pointsPerCorrect: 1,
@@ -25,9 +25,9 @@ export const TUNING = {
   // Matcha Whisk
   matcha: {
     gameDuration: 30, // seconds
-    targetFoam: 100,
+    targetFoam: 150,
     rotationSpeed: 2, // radians per second
-    sweetSpotArc: 60, // degrees
+    sweetSpotArc: 36, // degrees
     foamPerHit: 8,
     foamLossPerMiss: 2,
   },
@@ -45,7 +45,7 @@ export const TUNING = {
   // Frame the Moment (Photo)
   photo: {
     gameDuration: 30, // seconds
-    targetProgress: 100,
+    targetProgress: 250,
     frameSpeed: 150, // pixels per second
     perfectWindow: 50, // pixels from center
     goodWindow: 100,
