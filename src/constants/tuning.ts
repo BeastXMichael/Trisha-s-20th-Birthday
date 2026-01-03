@@ -16,7 +16,7 @@ export const TUNING = {
     gameDuration: 30, // seconds
     targetScore: 15,
     startingHealth: 3,
-    beltSpeed: 2160, // pixels per second
+    beltSpeed: 500, // pixels per second
     spawnInterval: 800, // ms
     mexicanFoodRatio: 0.6, // 60% Mexican foods
     pointsPerCorrect: 1,
