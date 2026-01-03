@@ -62,6 +62,7 @@ export class MapScene extends Phaser.Scene {
 
   create(): void {
     this.saveManager = SaveManager.getInstance();
+    void this.saveManager;
 
     // Add the game map as background
     const mapBg = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'gameMap');
@@ -193,23 +194,6 @@ export class MapScene extends Phaser.Scene {
 
     const targetNodeId = this.PATH_ORDER[newIndex];
     this.walkToNode(targetNodeId);
-  }
-
-  /**
-   * Get starting node based on save progress
-   */
-  private getSavedNodeId(): string {
-    const nodes = pathGraph.getAllNodes();
-
-    for (const node of nodes) {
-      if (node.levelIndex >= 0 && node.levelIndex <= 5) {
-        if (!this.saveManager.isLevelCompleted(node.levelIndex)) {
-          return node.id;
-        }
-      }
-    }
-
-    return 'finish';
   }
 
   /**
