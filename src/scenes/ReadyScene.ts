@@ -46,7 +46,7 @@ export class ReadyScene extends Phaser.Scene {
     });
     title.setOrigin(0.5);
 
-    // Token emoji
+    // Token emoji (pre-game)
     const tokenEmoji = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 60, level.tokenEmoji, {
       fontSize: '64px',
     });
@@ -85,12 +85,10 @@ export class ReadyScene extends Phaser.Scene {
         this.mapMusic.stop();
       }
 
-      // Play game start sound effect, then start minigame after it finishes
+      // Play game start sound effect and start minigame immediately
       const gameStartSound = this.sound.add('gameStartSound', { volume: 0.7 });
       gameStartSound.play();
-      gameStartSound.once('complete', () => {
-        this.scene.start(level.sceneKey, { levelIndex: this.levelIndex });
-      });
+      this.scene.start(level.sceneKey, { levelIndex: this.levelIndex });
     });
 
     // Back button (positioned further left to avoid overlap)

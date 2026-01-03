@@ -68,4 +68,16 @@ export const DIALOGUES = {
     "Here's to more adventures, more memories, and more love in 2026!",
     "Now go open that treasure chest... I wonder what's inside!",
   ],
+
+  goodbye: [
+    "Thank you Trisha for accompanying me in Cinnamoland!",
+    "I hope you accept Michale's date invitation hahaha",
+    "I am rooting for you guy y'know!",
+    "Afterall, this is your day",
+    "Your special day",
+    "I guess this is goodbye...",
+    "At least for now!",
+    "Enjoy your date, Trisha!",
+    "I'll see you soon yeap!",
+  ],
 };

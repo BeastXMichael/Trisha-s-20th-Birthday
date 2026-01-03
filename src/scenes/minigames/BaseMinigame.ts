@@ -39,6 +39,32 @@ export abstract class BaseMinigame extends Phaser.Scene {
 
   protected setupHUD(config: HUDConfig): void {
     this.hud = new HUD(this, config);
+    this.createSkipButton();
+  }
+
+  private createSkipButton(): void {
+    const width = 90;
+    const height = 36;
+    const x = GAME_WIDTH - 70;
+    const y = 40;
+
+    const bg = this.add.rectangle(x, y, width, height, 0xFFFFFF, 0.9);
+    bg.setStrokeStyle(2, 0x4A90A4);
+    bg.setDepth(300);
+    bg.setInteractive({ useHandCursor: true });
+
+    const label = this.add.text(x, y, 'Skip', {
+      fontSize: '18px',
+      color: '#333333',
+      fontFamily: 'Arial, sans-serif',
+      fontStyle: 'bold',
+    });
+    label.setOrigin(0.5);
+    label.setDepth(301);
+
+    bg.on('pointerdown', () => {
+      this.showWin();
+    });
   }
 
   protected startTimer(seconds: number, onComplete: () => void): void {
@@ -115,7 +141,9 @@ export abstract class BaseMinigame extends Phaser.Scene {
     if (this.gameMusic) {
       this.gameMusic.stop();
     }
-    this.scene.start('MapScene');
+    // Pass the last played level index so the map can place the character
+    // on the node where the player just was instead of forcing a teleport.
+    this.scene.start('MapScene', { lastLevelIndex: this.levelIndex });
   }
 
   protected createBackground(color: number = 0x87CEEB): void {

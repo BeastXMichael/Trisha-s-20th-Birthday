@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { PreHomeScene } from './scenes/PreHomeScene';
 import { HomeScene } from './scenes/HomeScene';
 import { MapScene } from './scenes/MapScene';
 import { ReadyScene } from './scenes/ReadyScene';
@@ -18,12 +19,13 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   parent: 'game-container',
-  backgroundColor: '#87CEEB',
+  backgroundColor: '#000000',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   scene: [
+    PreHomeScene,
     HomeScene,
     MapScene,
     ReadyScene,

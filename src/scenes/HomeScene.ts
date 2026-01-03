@@ -5,6 +5,7 @@ export class HomeScene extends Phaser.Scene {
   private video!: Phaser.GameObjects.Video;
   private transitionOverlay!: Phaser.GameObjects.Rectangle;
   private homeMusic?: Phaser.Sound.BaseSound;
+  private onSoundUnlocked?: () => void;
 
   constructor() {
     super({ key: 'HomeScene' });
@@ -30,6 +31,14 @@ export class HomeScene extends Phaser.Scene {
     this.load.audio('loseSound', new URL('../Assets/Lose sound effects.mp3', import.meta.url).href);
     this.load.audio('gameStartSound', new URL('../Assets/Game Start Sound Effect- Arcade games.mp3', import.meta.url).href);
     this.load.audio('finalVictoryMusic', new URL('../Assets/Mario Victory Theme [yjTZLVFi4aA].mp3', import.meta.url).href);
+
+    // Token logos
+    this.load.image('tokenCar', new URL('../Assets/Logos/Car Logo.png', import.meta.url).href);
+    this.load.image('tokenMexico', new URL('../Assets/Logos/Mexico logo.png', import.meta.url).href);
+    this.load.image('tokenMatcha', new URL('../Assets/Logos/Matcha Logo.png', import.meta.url).href);
+    this.load.image('tokenSailing', new URL('../Assets/Logos/Sailing Logo.png', import.meta.url).href);
+    this.load.image('tokenSunset', new URL('../Assets/Logos/Sunset Logo.png', import.meta.url).href);
+    this.load.image('tokenDinner', new URL('../Assets/Logos/Dinner Logo.png', import.meta.url).href);
   }
 
   create(): void {
@@ -55,9 +64,22 @@ export class HomeScene extends Phaser.Scene {
       }
     });
 
-    // Start home music immediately
-    this.homeMusic = this.sound.add('homeMusic', { loop: true, volume: 0.7 });
-    this.homeMusic.play();
+    // Start home music immediately (or as soon as audio unlocks)
+    const startHomeMusic = () => {
+      if (!this.homeMusic) {
+        this.homeMusic = this.sound.add('homeMusic', { loop: true, volume: 0.7 });
+      }
+      if (!this.homeMusic.isPlaying) {
+        this.homeMusic.play();
+      }
+    };
+
+    if (this.sound.locked) {
+      this.onSoundUnlocked = startHomeMusic;
+      this.sound.once('unlocked', this.onSoundUnlocked);
+    } else {
+      startHomeMusic();
+    }
 
     // Make the ENTIRE screen clickable (click anywhere to proceed)
     const fullScreenButton = this.add.rectangle(
@@ -85,13 +107,30 @@ export class HomeScene extends Phaser.Scene {
       0
     );
     this.transitionOverlay.setDepth(100);
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.onSoundUnlocked) {
+        this.sound.off('unlocked', this.onSoundUnlocked);
+        this.onSoundUnlocked = undefined;
+      }
+      if (this.homeMusic) {
+        this.homeMusic.stop();
+        this.homeMusic.destroy();
+        this.homeMusic = undefined;
+      }
+    });
   }
 
   private startTransition(): void {
+    if (this.onSoundUnlocked) {
+      this.sound.off('unlocked', this.onSoundUnlocked);
+      this.onSoundUnlocked = undefined;
+    }
     // Stop home music and play button click sound
     if (this.homeMusic) {
       this.homeMusic.stop();
     }
+    this.sound.stopByKey('homeMusic');
     this.sound.play('buttonClick');
 
     // Stop video

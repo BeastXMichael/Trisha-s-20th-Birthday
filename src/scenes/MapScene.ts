@@ -17,7 +17,7 @@ import { DIALOGUES } from '../constants/dialogues';
 export class MapScene extends Phaser.Scene {
   private saveManager!: SaveManager;
   private character!: Phaser.GameObjects.Image;
-  private currentNodeId: string = 'start';
+  private currentNodeId: string = '';
   private isWalking: boolean = false;
 
   // Dialogue system
@@ -48,6 +48,16 @@ export class MapScene extends Phaser.Scene {
     super({ key: 'MapScene' });
   }
 
+  init(data: { lastLevelIndex?: number }): void {
+    if (data && typeof data.lastLevelIndex === 'number') {
+      const nodes = pathGraph.getAllNodes();
+      const found = nodes.find(n => n.levelIndex === data.lastLevelIndex);
+      if (found) {
+        this.currentNodeId = found.id;
+      }
+    }
+  }
+
   create(): void {
     this.saveManager = SaveManager.getInstance();
 
@@ -65,9 +75,11 @@ export class MapScene extends Phaser.Scene {
     // Create the character with bottom-center anchor
     this.createCharacter();
 
-    // Always start at the start node
-    this.currentNodeId = 'start';
-    this.snapToNode('start');
+    // Determine starting node: prefer init-provided node, otherwise default to 'start'
+    if (!this.currentNodeId) {
+      this.currentNodeId = 'start';
+    }
+    this.snapToNode(this.currentNodeId);
 
     // Fade in
     const fadeOverlay = this.add.rectangle(
@@ -101,6 +113,9 @@ export class MapScene extends Phaser.Scene {
 
     // Add guidance text
     this.addGuidanceText();
+
+    // Ensure home music is stopped when entering the map
+    this.sound.stopByKey('homeMusic');
 
     // Start map background music
     this.mapMusic = this.sound.add('mapMusic', { loop: true, volume: 0.6 });

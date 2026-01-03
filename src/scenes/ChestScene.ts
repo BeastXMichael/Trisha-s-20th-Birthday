@@ -70,10 +70,11 @@ export class ChestScene extends Phaser.Scene {
         const startX = -50;
         const startY = 100 + index * 50;
 
-        const token = this.add.text(startX, startY, level.tokenEmoji, {
-          fontSize: '40px',
-        });
+        const token = this.add.image(startX, startY, level.tokenImageKey);
         token.setOrigin(0.5);
+        const tokenMaxSize = 70;
+        const tokenScale = Math.min(tokenMaxSize / token.width, tokenMaxSize / token.height);
+        token.setScale(tokenScale);
 
         // Fly to center in arc
         const targetX = centerX - 100 + (index % 3) * 100;

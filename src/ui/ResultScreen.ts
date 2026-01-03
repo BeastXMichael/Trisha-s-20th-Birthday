@@ -44,8 +44,8 @@ export class ResultScreen {
     this.container.add(overlay);
 
     // Panel
-    const panelWidth = 450;
-    const panelHeight = 350;
+    const panelWidth = 520;
+    const panelHeight = 525;
     const panel = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, COLORS.white, 0.95);
     panel.setStrokeStyle(4, this.isWin ? COLORS.mint : COLORS.pink);
     this.container.add(panel);
@@ -62,8 +62,8 @@ export class ResultScreen {
     const saveManager = SaveManager.getInstance();
     saveManager.completeLevel(this.levelIndex, level.id);
 
-    // Title
-    const title = this.scene.add.text(0, -120, '🎉 Amazing! 🎉', {
+    // Title (top of panel)
+    const title = this.scene.add.text(0, -210, '🎉 Amazing! 🎉', {
       fontSize: '42px',
       color: '#4A90A4',
       fontFamily: 'Arial, sans-serif',
@@ -72,34 +72,37 @@ export class ResultScreen {
     title.setOrigin(0.5);
     this.container.add(title);
 
-    // Token earned
-    const tokenText = this.scene.add.text(0, -50, `You earned: ${level.tokenEmoji} ${level.tokenName}`, {
-      fontSize: '28px',
+    // Token earned (left side, vertically centered)
+    const tokenText = this.scene.add.text(-190, 0, `You earned:\n${level.tokenName}`, {
+      fontSize: '42px',
       color: '#555555',
       fontFamily: 'Arial, sans-serif',
+      align: 'left',
     });
-    tokenText.setOrigin(0.5);
+    tokenText.setOrigin(0, 0.5);
     this.container.add(tokenText);
 
-    // Token animation
-    const token = this.scene.add.text(0, 20, level.tokenEmoji, {
-      fontSize: '64px',
-    });
+    // Token animation (right side, inside panel)
+    const token = this.scene.add.image(140, -20, level.tokenImageKey);
     token.setOrigin(0.5);
+    const tokenMaxSize = 200;
+    const tokenScale = Math.min(tokenMaxSize / token.width, tokenMaxSize / token.height);
+    token.setScale(tokenScale);
     this.container.add(token);
 
     // Bounce animation
     this.scene.tweens.add({
       targets: token,
-      y: token.y - 20,
+      y: token.y - 15,
       duration: 500,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
 
-    // Sparkles
-    this.createSparkles();
+    // Sparkles around the earned text
+    this.createSparklesAroundText(tokenText);
+
 
     // Start a short Judy dialogue automatically for this win
     const dsAuto = new DialogueSystem(this.scene as Phaser.Scene);
@@ -113,7 +116,7 @@ export class ResultScreen {
 
     // Next/Finish button
     const buttonText = isLastLevel ? 'See Your Surprise!' : 'Continue';
-    const button = this.createButton(0, 110, buttonText, COLORS.mint, () => {
+    const button = this.createButton(0, 160, buttonText, COLORS.mint, () => {
       onNext();
     });
     this.container.add(button);
@@ -161,16 +164,20 @@ export class ResultScreen {
     this.container.add(backButton);
   }
 
-  private createSparkles(): void {
-    for (let i = 0; i < 12; i++) {
-      const angle = (i / 12) * Math.PI * 2;
-      const distance = 80 + Math.random() * 40;
-      const sparkle = this.scene.add.text(
-        Math.cos(angle) * distance,
-        Math.sin(angle) * distance - 50,
-        '✨',
-        { fontSize: '24px' }
-      );
+  private createSparklesAroundText(target: Phaser.GameObjects.Text): void {
+    const bounds = target.getBounds();
+    const pad = 12;
+    const left = bounds.left - pad;
+    const right = bounds.right + pad;
+    const top = bounds.top - pad;
+    const bottom = bounds.bottom + pad;
+
+    for (let i = 0; i < 16; i++) {
+      const edge = i % 4;
+      const t = Math.random();
+      const x = edge === 0 ? left + t * (right - left) : edge === 1 ? right : edge === 2 ? left + t * (right - left) : left;
+      const y = edge === 0 ? top : edge === 1 ? top + t * (bottom - top) : edge === 2 ? bottom : top + t * (bottom - top);
+      const sparkle = this.scene.add.text(x, y, '✨', { fontSize: '20px' });
       sparkle.setOrigin(0.5);
       this.container.add(sparkle);
 

@@ -5,27 +5,30 @@ export interface LevelConfig {
   objective: string;
   sceneKey: string;
   tokenEmoji: string;
+  tokenImageKey: string;
   tokenName: string;
 }
 
 export const LEVELS: LevelConfig[] = [
   {
     id: 'car',
-    name: 'Hyundai Discovery Tour',
+    name: 'Car Racing!',
     description: 'Drive through a dreamy road!',
-    objective: 'Dodge obstacles for 45 seconds',
+    objective: 'Dodge obstacles for 30 seconds',
     sceneKey: 'CarDodging',
     tokenEmoji: '🚗',
-    tokenName: 'Key',
+    tokenImageKey: 'tokenCar',
+    tokenName: 'Car Token',
   },
   {
     id: 'food',
-    name: 'Mexican Restaurant Lunch',
+    name: 'Mexican Restaurant',
     description: 'Enjoy some delicious Mexican food!',
     objective: 'Tap Mexican foods to reach the target score',
     sceneKey: 'FoodConveyor',
     tokenEmoji: '🌮',
-    tokenName: 'Taco',
+    tokenImageKey: 'tokenMexico',
+    tokenName: 'Mexico Token',
   },
   {
     id: 'matcha',
@@ -34,16 +37,18 @@ export const LEVELS: LevelConfig[] = [
     objective: 'Hit the sweet spot to fill the foam meter',
     sceneKey: 'MatchaWhisk',
     tokenEmoji: '🍵',
-    tokenName: 'Matcha Cup',
+    tokenImageKey: 'tokenMatcha',
+    tokenName: 'Matcha Token',
   },
   {
     id: 'sailing',
-    name: 'Sailing at MBS',
+    name: 'Sailing Moon',
     description: 'Sail through the beautiful lights!',
     objective: 'Steer through the gates',
     sceneKey: 'SailBetweenLights',
     tokenEmoji: '⛵',
-    tokenName: 'Sailboat',
+    tokenImageKey: 'tokenSailing',
+    tokenName: 'Sailing Token',
   },
   {
     id: 'photo',
@@ -52,7 +57,8 @@ export const LEVELS: LevelConfig[] = [
     objective: 'Snap photos at the right moment',
     sceneKey: 'FrameMoment',
     tokenEmoji: '📷',
-    tokenName: 'Camera',
+    tokenImageKey: 'tokenSunset',
+    tokenName: 'Sunset Token',
   },
   {
     id: 'dinner',
@@ -61,6 +67,7 @@ export const LEVELS: LevelConfig[] = [
     objective: 'Choose the best answers to fill the love bar',
     sceneKey: 'RomanticDinner',
     tokenEmoji: '❤️',
-    tokenName: 'Heart',
+    tokenImageKey: 'tokenDinner',
+    tokenName: 'Dinner Token',
   },
 ];
